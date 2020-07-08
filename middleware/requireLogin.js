@@ -18,9 +18,10 @@ module.exports=(req,res,next)=>{
             } else{
                 const {_id}=payload
                 User.findById(_id).then(userdata=>{
-                    req.user=userdata;
-                })
-                next();
+                    req.user=userdata
+                    next()
+                });
+                
             }
         })
     }

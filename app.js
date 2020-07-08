@@ -3,10 +3,6 @@ const mongoose=require("mongoose");
 const { MONGOURL }=require("./Key.js");
 const app=express();
 
-require("./models/user");
-
-app.use(express.json());
-app.use(require("./routes/auth"));
 
 mongoose.connect(MONGOURL, {
     useNewUrlParser: true,
@@ -23,5 +19,11 @@ mongoose.connection.on("error",err=>{
 })
 
 
+require("./models/user");
+require("./models/Post");
+
+app.use(express.json());
+app.use(require("./routes/auth"));
+app.use(require("./routes/post"));
 
 app.listen( 3000,()=>{console.log("server is running on port 3000")});
