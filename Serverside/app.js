@@ -26,4 +26,4 @@ app.use(express.json());
 app.use(require("./routes/auth"));
 app.use(require("./routes/post"));
 
-app.listen( 3000,()=>{console.log("server is running on port 3000")});
+app.listen( 8000,()=>{console.log("server is running on port 8000")});
