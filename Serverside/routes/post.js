@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
-const requireLogin=require("../middleware/requireLogin")
+const requireLogin = require("../middleware/requireLogin")
 const Post= mongoose.model("Post");
+mongoose.set('useFindAndModify', false)
 
-router.get("/allposts",(req,res)=>{
-    Post.find().populate("postedBy","_id name")
+router.get("/allposts",requireLogin,(req,res)=>{
+    Post.find().populate("postedBy","_id name").populate("comments.postedBy","_id name")
     .then(posts=>{
         res.json({posts})
     })
@@ -15,14 +16,15 @@ router.get("/allposts",(req,res)=>{
 })
 
 router.post("/createpost",requireLogin,(req,res)=>{
-    const{title,body}=req.body;
-    if(!title||!body){
+    const{title,body,images}=req.body;
+    if(!title||!body||!images){
         return res.status(422).json({error:"Please add all the fields"})
     } else{
        req.user.password=undefined
        const post = new Post({
            title,
            body,
+           photo:images,
            postedBy:req.user
        })
        post.save().then(result=>{
@@ -43,6 +45,111 @@ router.get("/myposts",requireLogin,(req,res)=>{
     .catch(err=>{
         console.log(err)
     })
+})
+
+router.put("/like",requireLogin,(req,res)=>{
+    
+    Post.findByIdAndUpdate(req.body.postId,{
+    $push:{likes:req.user._id}
+    },{
+        new:true
+    }).populate("comments.postedBy", "_id name")
+    .exec((err,result)=>{
+        if(err){
+            return res.status(422).json({error:err});
+        } else{
+            res.json(result)
+        }
+    })
+})
+
+router.put("/unlike", requireLogin, (req, res) => {
+    Post.findByIdAndUpdate(req.body.postId, {
+        $pull: {
+            likes: req.user._id
+        }
+    }, {
+        new: true
+    }).populate("comments.postedBy", "_id name")
+    .exec((err, result) => {
+        if (err) {
+            return res.status(422).json({
+                error: err
+            });
+        } else {
+            res.json(result)
+        }
+    })
+})
+
+router.put("/comments", requireLogin, (req, res) => {
+    const comments ={
+        text:req.body.text,
+        postedBy:req.user._id
+    }
+    Post.findByIdAndUpdate(req.body.postId, {
+        $push: {
+            comments:comments
+        }
+    }, {
+        new: true
+    },)
+    .populate("comments.postedBy","_id name")
+    
+    .exec((err, result) => {
+        if (err) {
+            return res.status(422).json({
+                error: err
+            });
+        } else {
+            res.json(result)
+        }
+    })
+})
+
+router.delete("/deletepost/:postId",requireLogin,(req,res)=>{
+    Post.findOne({_id:req.params.postId})
+    .populate("postedBy","_id")
+    .exec((err,post)=>{
+        if(err || !post){
+            return res.status(422).json({error:err})
+        } else if(post.postedBy._id.toString()===req.user._id.toString()){
+            post.remove()
+            .then(result=>{
+                res.json(result)
+            }).catch(err=>{
+                console.log(err)
+            })
+        }
+    })
+})
+
+
+router.delete("/deletecomment/:postId/:commentId",requireLogin,async(req,res)=>{
+     try {
+         // console.log(req.params.postId);
+         // console.log(req.params.commentId);
+         let post = await Post.findOne({
+                 _id: req.params.postId
+             })
+             .populate("comments.postedBy", "_id name")
+             .populate("postedBy", "_id name")
+         if (!post) {
+             return res.status(404).json({
+                 error: "Post not found"
+             })
+         }
+         post.comments = await post.comments.filter(comment => {
+             return comment._id != req.params.commentId
+         })
+
+         const result = await post.save()
+         return res.json(result)
+
+     } catch (err) {
+         console.error("Error", err);
+
+     }
 })
 
 module.exports= router
