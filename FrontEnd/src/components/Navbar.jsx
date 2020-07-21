@@ -9,6 +9,7 @@ function Navbar(){
       return[
          <li><Link to="/profile">Profile</Link></li>,
         <li><Link to="/createpost">Create Post</Link></li>,
+        <li><Link to="/followingposts">My Following Posts</Link></li>,
         <li>
           <button className="btn waves-effect waves-light red darken-3"
            onClick={()=>{
