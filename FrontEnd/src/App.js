@@ -9,6 +9,7 @@ import Profile from './components/pages/Profile';
 import CreatePost from './components/pages/CreatePost';
 import { reducer, initialState } from './Reducers/userReducer';
 import UserProfile from './components/pages/UserProfile';
+import Subuserposts from './components/pages/Subuserpost';
 
 
 export const userContext=createContext()
@@ -44,6 +45,9 @@ function Routing(){
       </Route>
       <Route path="/profile/:userid">
         <UserProfile/>
+      </Route>
+      <Route path="/followingposts">
+        <Subuserposts/>
       </Route>
     </Switch>
   )
