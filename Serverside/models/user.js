@@ -13,6 +13,10 @@ const userSchema= new mongoose.Schema({
         type: String,
         required:true
     },
+    profileImg:{
+        type:String,
+        default: "https://res.cloudinary.com/sourav675/image/upload/v1595274497/defultimages_pekudr.png"
+    },
     followers:[
         {
             type:ObjectId,
