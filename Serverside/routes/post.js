@@ -54,6 +54,7 @@ router.put("/like",requireLogin,(req,res)=>{
     },{
         new:true
     }).populate("comments.postedBy", "_id name")
+    .populate("postedBy", "_id name")
     .exec((err,result)=>{
         if(err){
             return res.status(422).json({error:err});
@@ -71,6 +72,7 @@ router.put("/unlike", requireLogin, (req, res) => {
     }, {
         new: true
     }).populate("comments.postedBy", "_id name")
+    .populate("postedBy", "_id name")
     .exec((err, result) => {
         if (err) {
             return res.status(422).json({
@@ -150,6 +152,19 @@ router.delete("/deletecomment/:postId/:commentId",requireLogin,async(req,res)=>{
          console.error("Error", err);
 
      }
+})
+
+router.get("/getsubposts", requireLogin, (req, res) => {
+    Post.find({postedBy:{$in:req.user.following}})
+    .populate("postedBy", "_id name").populate("comments.postedBy", "_id name")
+        .then(posts => {
+            res.json({
+                posts
+            })
+        })
+        .catch(err => {
+            console.log(err);
+        })
 })
 
 module.exports= router
